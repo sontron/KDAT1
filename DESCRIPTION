@@ -1,0 +1,26 @@
+Package: KDAT1
+Type: Package
+Title: Manipulating and Analyzing Data Interactively with Shiny 
+Version: 0.0.1
+Author: son tron
+Maintainer: son tron <sontron@foxmail.com>
+Description: This pakcage is mainly used for statistical analysis.
+License: MIT
+Encoding: UTF-8
+LazyData: true
+Collate:
+   "autoVarClass.R"
+   "createVars.R"
+   "dataMnp.R"
+   "KA1.R"
+RoxygenNote: 7.1.1
+Imports:
+  compiler,
+  data.table,
+  ggplot2,
+  shinyAce,
+  shinythemes,
+  shinyWidgets,
+  stringi,
+  DT
+ByteCompile: true
