@@ -9,19 +9,6 @@ library(DT)
 
 options(shiny.maxRequestSize = 50000*1024^2)
 
-
-
-# as.numeric(Sys.time())->seed
-# sd=paste(path.package('KDAT1'),'/app/',sep='')
-# 
-# ifelse(!dir.exists(wd),dir.create(wd),FALSE)
-# paste(wd,seed,sep='')->wd2
-# dir.create(wd2)
-# setwd(wd2)
-
-#source(paste0(sd,'script.R'))
-
-# rm(list=c('seed','wd','wd2','sd'))
 environment()->envKDAT1
 lstKDAT1<-list()
 
@@ -43,9 +30,7 @@ server<-function(input,output,session){
   
   ###### 数据导入功能(data_Impt) ######
   data_dataImpt<-reactive({
-    
-    
-    
+    input$go_dataImpt
     if(is.null(input$file_dataImpt)) {
       Data<-read.table(text=input$text_dataImpt,
                        sep="\t",
@@ -71,6 +56,38 @@ server<-function(input,output,session){
     }
     return(Data)
   })
+  
+  
+  
+  
+  data_dataImptHead<-reactive({
+    
+    if(is.null(input$file_dataImpt)) {
+      Data<-read.table(text=input$text_dataImpt,
+                       sep="\t",
+                       na.strings=input$nastr_dataImpt,
+                       stringsAsFactors = input$strAsFac_dataImpt,
+                       header=input$header_dataImpt,
+                       fileEncoding = input$encod_dataImpt,nrows=10)
+    } else {
+      inFile<-input$file_dataImpt
+      if(input$argsMore_dataImpt=='') {
+        
+        
+        Data<-read.table(inFile$datapath,
+                         na.strings=input$nastr_dataImpt,
+                         stringsAsFactors = input$strAsFac_dataImpt,
+                         header=input$header_dataImpt,
+                         fileEncoding = input$encod_dataImpt,
+                         sep=input$sep_dataImpt,nrows=10)
+      } else {
+        textfun_dataImpt<-paste("read.table(",paste("file=inFile$datapath","header=input$header_dataImpt","na.strings=input$nastr_dataImpt","stringsAsFactors = input$strAsFac_dataImpt","sep=input$sep_dataImpt","nrows=10","fileEncoding=input$encod_dataImpt",input$argsMore_dataImpt,sep=','),")",sep='')
+        eval(parse(text=textfun_dataImpt))->Data
+      }
+    }
+    return(Data)
+  })
+  
   
   
   output$args_dataImpt<-renderUI({
@@ -153,7 +170,9 @@ server<-function(input,output,session){
     
   })
   
-  
+  output$dataHead<-renderPrint({
+    data_dataImptHead()
+  })
   
   output$varClass_dataImpt<-renderPrint({
     input$go_dataImpt
@@ -441,29 +460,21 @@ server<-function(input,output,session){
       ),
       
       panel(status='primary',
-            heading='筛选子集',
+            heading='设置各类参数',
             textInputAddon(
-              'subset1',label='筛选',value='',addon=icon('pencil')
-            )
-      ),
-      
-      panel(status='primary',
-            heading='设置公式',
+              'subset1',label='筛选子集',value='',addon=icon('pencil')
+            ),
             textInputAddon(
-              'newFormula',label='函数',value='',addon=icon('pencil')
-            )
-      ),
-      
-      panel(status='primary',
-            heading='选择分类维度变量',
+              'newFormula',label='计算公式',value='',addon=icon('pencil')
+            ),
+            
             pickerInput(
               inputId = "varSel_Mnp",
-              label = "选择数据变量",
+              label = "选择分类处理变量",
               c('无'='',names(data_dataImpt())),
               multiple = TRUE,
               options = list(`actions-box` = TRUE)
             )
-            
       ),
       
       conditionalPanel(
@@ -481,20 +492,16 @@ server<-function(input,output,session){
         
         
         panel(status='primary',
-              heading='选择处理的变量',
+              heading='设置批量处理参数',
               pickerInput(
                 inputId = "varSelBatch_Mnp",
-                label = "选择数据变量",
+                label = "批量处理的变量",
                 names(data_dataImpt()),
                 multiple = TRUE,
                 options = list(`actions-box` = TRUE)
-              )
+              ),
               
-        ),
-        
-        panel(status='primary',
-              heading='变量后缀',
-              textInputAddon('newTail',label='后缀',value='_New',addon=icon('pencil'))
+              textInputAddon('newTail',label='新变量后缀',value='_New',addon=icon('pencil'))
         )
       )
     )
@@ -524,7 +531,7 @@ server<-function(input,output,session){
                    subSets=input$subset1,
                    batch=T,
                    batchVars=input$varSelBatch_Mnp,
-                   batchVarsTail=input$Tail)->dat
+                   batchVarsTail=input$newTail)->dat
         
       }
       
@@ -557,6 +564,11 @@ server<-function(input,output,session){
   
   
   ##### datatable ####
+  
+  
+  
+  
+  
   output$more1_DT<-renderUI({
     change_data()
     list(
@@ -565,14 +577,14 @@ server<-function(input,output,session){
             pickerInput(
               inputId = "dataSel_DT",
               label = "选择数据集",
-              choices = ls(envKDAT1)[-which(ls(envKDAT1)%in%c('envKDAT1','server','ui','LstMadis'))],
-              selected =ls(envKDAT1)[-which(ls(envKDAT1)%in%c('envKDAT1','server','ui','LstMadis'))][1],
+              choices = ls(envKDAT1)[-which(ls(envKDAT1)%in%c('envKDAT1','server','ui','lstKDAT1'))],
+              selected =ls(envKDAT1)[-which(ls(envKDAT1)%in%c('envKDAT1','server','ui','lstKDAT1'))][1],
               multiple = FALSE,
               options = list(`actions-box` = FALSE)
             )
       ),
       panel(status='primary',
-            heading='筛选子集',
+            heading='手工设置筛选条件',
             textInputAddon(
               inputId='subset2',label='筛选',value='',addon=icon('pencil')
             )
@@ -589,6 +601,30 @@ server<-function(input,output,session){
   })
   
   
+  output$more0_Filter<-renderUI({
+    list(
+      pickerInput(
+        'Filter',
+        'choose filter vars',
+        choices = c('无'='',names(data_DT())),
+        selected ='无',
+        multiple=T,
+        options = list(`actions-box` = T))
+    )
+    
+  })
+  
+  output$more1_Filter<-renderUI({
+    list(
+      if(length(setdiff(input$Filter,''))==0){
+        NULL
+      } else {
+        shinyFilter(data_DT(),filter=setdiff(input$Filter,''))
+      }
+    )
+  })
+  
+  
   output$more2_DT<-renderUI({
     list(
       panel(status='primary',
@@ -600,7 +636,7 @@ server<-function(input,output,session){
               multiple = TRUE,
               options = list(`actions-box` = TRUE)
             ),
-
+            
             pickerInput(
               inputId = "sumDT",
               label = "纳入计算求和的变量",
@@ -609,8 +645,8 @@ server<-function(input,output,session){
               selected='',
               multiple = TRUE,
               options = list(`actions-box` = TRUE)
-              ),
-
+            ),
+            
             pickerInput(
               inputId = "medianDT",
               label = "纳入计算中位数的变量",
@@ -619,7 +655,7 @@ server<-function(input,output,session){
               multiple = TRUE,
               options = list(`actions-box` = TRUE)
             ),
-
+            
             pickerInput(
               inputId = "sdDT",
               label = "纳入计算标准差的变量",
@@ -654,6 +690,25 @@ server<-function(input,output,session){
   res_DT<-eventReactive(input$go_DT,{
     
     data_DT()->dt
+    
+    
+    if(length(setdiff(input$Filter,''))==0){
+      dt<-dt
+    } else {
+      
+      indMat<-sapply(setdiff(input$Filter,''),function(i){
+        if(class(dt[,i])%in%c('character','factor')){
+          dt[,i]%in%input[[i]]
+        } else {
+          dt[,i]>=input[[i]][1]&dt[,i]<=input[[i]][2]
+          
+        }
+      })
+      
+      apply(indMat,1,all)->Ind
+      dt<-dt[Ind,]
+      
+    }
     
     if(input$meanDT==''){
       meanMethod=''
@@ -796,6 +851,10 @@ ui<-fluidPage(
         ),
         
         mainPanel(
+          panel(status='primary',
+            heading='载入小部分数据试错',
+            verbatimTextOutput('dataHead')
+          ),
           panel(
             heading='原始数据变量描述',
             verbatimTextOutput('varClass_dataImpt'),
@@ -870,8 +929,15 @@ ui<-fluidPage(
       sidebarLayout(
         sidebarPanel(
           uiOutput('more1_DT'),
+          panel(
+            heading = '配置筛选条件',
+            uiOutput('more0_Filter'),
+            uiOutput('more1_Filter'),
+            status = 'primary'
+          ),
           uiOutput('more2_DT'),
           actionBttn('go_DT','确定')
+          
         ),
         mainPanel(
           panel(status='primary',heading = '结果',

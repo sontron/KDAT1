@@ -13,6 +13,7 @@ Collate:
    "createVars.R"
    "dataMnp.R"
    "KA1.R"
+   "shinyFilter.R"
 RoxygenNote: 7.1.1
 Imports:
   compiler,
