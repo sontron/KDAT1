@@ -817,9 +817,9 @@ ui<-fluidPage(
   
   
   navbarPage(
-    # strong('MADIS'),
-    title=div(icon("r-project"), strong("MADIS")),
-    windowTitle = 'MADIS',
+    # strong('Kindo Data Analysis Toolbox 1'),
+    title=div(icon("r-project"), strong("Kindo Data Analysis Toolbox 1")),
+    windowTitle = 'Kindo',
     ###### 导入数据功能(data_Impt)######
     
     tabPanel(
