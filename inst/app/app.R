@@ -561,6 +561,132 @@ server<-function(input,output,session){
   })
   
   
+  ###### 数据导出(dataExpt) ######
+  
+  output$more1_dataExpt<-renderUI({
+    
+    change_data()
+    #?#
+    list(
+      panel(status='primary',
+            heading='选择处理的数据集',
+            pickerInput(
+              inputId = "dataSel_dataExpt",
+              label = "选择数据集",
+              choices = ls(envKDAT1)[-which(ls(envKDAT1)%in%c('envKDAT1','server','ui','lstKDAT1'))],
+              selected =ls(envKDAT1)[-which(ls(envKDAT1)%in%c('envKDAT1','server','ui','lstKDAT1'))][1],
+              multiple = FALSE,
+              options = list(`actions-box` = FALSE)
+            )
+            #selectInput('dataSel_dataExpt','选择数据集',ls(envMadis)[-which(ls(envMadis)%in%c('envMadis','server','ui','LstMadis'))])
+      )
+    )
+  })
+  
+  data_dataExpt<-reactive({
+    
+    change_data()
+    #?#
+    get(input$dataSel_dataExpt,envKDAT1)->dataExpt
+    return(dataExpt)
+  })
+  
+  output$more2_dataExpt<-renderUI({
+    list(
+      panel(status='primary',
+            heading='保存的数据格式',
+            pickerInput(
+              inputId='dataType_dataExpt',
+              label='选择数据格式',
+              choices = c(
+                '文本数据'='txtFile_dataExpt',
+                'csv数据'='csvFile_dataExpt',
+                'R数据文件'='RData_dataExpt'
+              ),
+              selected ='csvFile_dataExpt',
+              multiple = FALSE,
+              options = list(`actions-box` = FALSE)
+            )
+      ),
+      panel(status='primary',
+            heading='设定参数',
+            conditionalPanel(
+              condition = "input['dataType_dataExpt']=='txtFile_dataExpt'||input['dataType_dataExpt']=='csvFile_dataExpt'",
+              awesomeCheckbox('quote_dataExpt','字符类型是否带引号',FALSE),
+              pickerInput(
+                inputId='sep_dataExpt',
+                label='文件分隔符',
+                choices = c(
+                  '逗号分隔'=',',
+                  '制表符分隔'='\t',
+                  '空格分隔'=' '
+                ),
+                selected =',',
+                multiple = FALSE,
+                options = list(`actions-box` = FALSE)
+              ),
+              flowLayout(
+                awesomeCheckbox('rowNames_dataExpt','是否保留行名',FALSE),
+                awesomeCheckbox('colNames_dataExpt','是否保留列名',TRUE) 
+              ),
+              pickerInput(
+                inputId='fileEncoding_dataExpt',
+                label='字符集编码',
+                choices = c(
+                  '国标(GB18030)'='GB18030',
+                  'UTF8编码'='utf8'
+                ),
+                selected ='GB18030',
+                multiple = FALSE,
+                options = list(`actions-box` = FALSE)
+              )
+            ),
+            
+            conditionalPanel(
+              condition = "input['dataType_dataExpt']=='RData_dataExpt'",
+              awesomeCheckbox('ascii_dataExpt','是否保存为ASCII格式？',FALSE)
+            )
+      ),
+      panel(status='primary',
+            heading='设定文件名称',
+            textInputAddon(inputId='fileName_dataExpt','保存的文件名称',value='',placeholder = 'eg:myData',addon = icon('pencil'))
+      )
+    )
+  })
+  
+  output$downloadData <- downloadHandler(
+    
+    filename=function(){
+      if(input$dataType_dataExpt=='txtFile_dataExpt'){
+        return(ifelse(input$fileName_dataExpt!='',paste0(input$fileName_dataExpt,'.txt'),paste0(input$dataSel_dataExpt,'.txt')))
+      }
+      
+      if(input$dataType_dataExpt=='csvFile_dataExpt'){
+        return(ifelse(input$fileName_dataExpt!='',paste0(input$fileName_dataExpt,'.csv'),paste0(input$dataSel_dataExpt,'.csv')))
+      }
+      
+      if(input$dataType_dataExpt=='RData_dataExpt'){
+        return(ifelse(input$fileName_dataExpt!='',paste0(input$fileName_dataExpt,'.RData'),paste0(input$dataSel_dataExpt,'.RData')))
+      }
+      
+    },
+    content = function(File) {
+      if(input$dataType_dataExpt!='RData_dataExpt'){
+        write.table(data_dataExpt(),file=File,sep=input$sep_dataExpt,quote=input$quote_dataExpt,
+                    row.names=input$rowNames_dataExpt,col.names=input$colNames_dataExpt,
+                    fileEncoding = input$fileEncoding_dataExpt)
+      } else {
+        assign(input$fileName_dataExpt,data_dataExpt())
+        save(list=input$fileName_dataExpt,file=File,ascii=input$ascii_dataExpt)
+      }
+    }
+  )
+  
+  output$summary_dataExpt<-renderPrint({
+    print(head(data_dataExpt()))
+  })
+  
+  
   
   
   ##### datatable ####
@@ -817,8 +943,8 @@ ui<-fluidPage(
   
   
   navbarPage(
-    # strong('Kindo Data Analysis Toolbox 1'),
-    title=div(icon("r-project"), strong("Kindo Data Analysis Toolbox 1")),
+    # strong('Kindo Data Analysis Toolbox-1'),
+    title=div(icon("r-project"), strong("Kindo Data Analysis Toolbox-1")),
     windowTitle = 'Kindo',
     ###### 导入数据功能(data_Impt)######
     
@@ -916,7 +1042,26 @@ ui<-fluidPage(
           )
         )
         
+      ),
+      
+      ###### 数据处理-导出数据集 ######
+      tabPanel(
+        icon=icon('download'),
+        '数据导出',
+        sidebarLayout(
+          sidebarPanel(
+            uiOutput('more1_dataExpt'),
+            uiOutput('more2_dataExpt'),
+            downloadButton("downloadData", "Download")
+          ),
+          
+          mainPanel(
+            verbatimTextOutput('summary_dataExpt')
+          )
+        )
       )
+      
+      
     ),
     
     
