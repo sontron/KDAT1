@@ -14,6 +14,7 @@ Collate:
    "dataMnp.R"
    "KA1.R"
    "shinyFilter.R"
+   "fnRIV.R"
 RoxygenNote: 7.1.1
 Imports:
   compiler,
