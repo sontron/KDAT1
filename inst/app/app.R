@@ -4,10 +4,11 @@ library(shinythemes)
 library(shinyWidgets)
 library(stringi)
 library(DT)
+library(data.table)
 
 
 
-options(shiny.maxRequestSize = 50000*1024^2)
+options(shiny.maxRequestSize = 100000*1024^2)
 
 environment()->envKDAT1
 lstKDAT1<-list()
@@ -32,25 +33,27 @@ server<-function(input,output,session){
   data_dataImpt<-reactive({
     input$go_dataImpt
     if(is.null(input$file_dataImpt)) {
-      Data<-read.table(text=input$text_dataImpt,
+      Data<-read.csv(text=input$text_dataImpt,
                        sep="\t",
                        na.strings=input$nastr_dataImpt,
                        stringsAsFactors = input$strAsFac_dataImpt,
                        header=input$header_dataImpt,
+
                        fileEncoding = input$encod_dataImpt)
     } else {
       inFile<-input$file_dataImpt
       if(input$argsMore_dataImpt=='') {
         
         
-        Data<-read.table(inFile$datapath,
+        Data<-read.csv(inFile$datapath,
                          na.strings=input$nastr_dataImpt,
                          stringsAsFactors = input$strAsFac_dataImpt,
                          header=input$header_dataImpt,
                          fileEncoding = input$encod_dataImpt,
+
                          sep=input$sep_dataImpt)
       } else {
-        textfun_dataImpt<-paste("read.table(",paste("file=inFile$datapath","header=input$header_dataImpt","na.strings=input$nastr_dataImpt","stringsAsFactors = input$strAsFac_dataImpt","sep=input$sep_dataImpt","fileEncoding=input$encod_dataImpt",input$argsMore_dataImpt,sep=','),")",sep='')
+        textfun_dataImpt<-paste("read.csv(",paste("file=inFile$datapath","header=input$header_dataImpt","na.strings=input$nastr_dataImpt","stringsAsFactors = input$strAsFac_dataImpt","sep=input$sep_dataImpt","fileEncoding=input$encod_dataImpt",input$argsMore_dataImpt,sep=','),")",sep='')
         eval(parse(text=textfun_dataImpt))->Data
       }
     }
@@ -63,7 +66,7 @@ server<-function(input,output,session){
   data_dataImptHead<-reactive({
     
     if(is.null(input$file_dataImpt)) {
-      Data<-read.table(text=input$text_dataImpt,
+      Data<-read.csv(text=input$text_dataImpt,
                        sep="\t",
                        na.strings=input$nastr_dataImpt,
                        stringsAsFactors = input$strAsFac_dataImpt,
@@ -74,14 +77,14 @@ server<-function(input,output,session){
       if(input$argsMore_dataImpt=='') {
         
         
-        Data<-read.table(inFile$datapath,
+        Data<-read.csv(inFile$datapath,
                          na.strings=input$nastr_dataImpt,
                          stringsAsFactors = input$strAsFac_dataImpt,
                          header=input$header_dataImpt,
                          fileEncoding = input$encod_dataImpt,
                          sep=input$sep_dataImpt,nrows=10)
       } else {
-        textfun_dataImpt<-paste("read.table(",paste("file=inFile$datapath","header=input$header_dataImpt","na.strings=input$nastr_dataImpt","stringsAsFactors = input$strAsFac_dataImpt","sep=input$sep_dataImpt","nrows=10","fileEncoding=input$encod_dataImpt",input$argsMore_dataImpt,sep=','),")",sep='')
+        textfun_dataImpt<-paste("read.csv(",paste("file=inFile$datapath","header=input$header_dataImpt","na.strings=input$nastr_dataImpt","stringsAsFactors = input$strAsFac_dataImpt","sep=input$sep_dataImpt","nrows=10","fileEncoding=input$encod_dataImpt",input$argsMore_dataImpt,sep=','),")",sep='')
         eval(parse(text=textfun_dataImpt))->Data
       }
     }
