@@ -228,8 +228,8 @@ server<-function(input,output,session){
     
     change_data()
     #?#
-    get(input$dataSel_varClass,envKDAT1)->data_varClass
-    return(data_varClass)
+    get(input$dataSel_varClass,envKDAT1)->data_varClass1
+    return(data_varClass1)
   })
   
   output$more2_varClass<-renderUI({
@@ -299,36 +299,35 @@ server<-function(input,output,session){
                       multiple=FALSE,
                       options=list(`actions-box` = FALSE)
                     )
-              ),
+              )#,
               
               
-              pickerInput(
-                inputId='varsOrder_varClass',
-                label='转换为有序型变量',
-                choices=c('无'='',names(data_varClass())),
-                #selected =names(data_varClass())[1],
-                multiple=FALSE,
-                options = list(`actions-box` = FALSE)
-              )
+              # pickerInput(
+              #   inputId='varsOrder_varClass',
+              #   label='转换为有序型变量',
+              #   choices=c('无'='',names(data_varClass())),
+              #   #selected =names(data_varClass())[1],
+              #   multiple=FALSE,
+              #   options = list(`actions-box` = FALSE)
+              # )
             )
       )
     )
   })
   
   output$more3_varClass<-renderUI({
-    if(input$varsOrder_varClass!='') {
-      chcs<-unique(data_varClass()[,input$varsOrder_varClass])}
-    else {chcs<-''}
+    # if(input$varsOrder_varClass!='') {
+    #   chcs<-unique(data_varClass()[,input$varsOrder_varClass])} else {chcs<-''}
     list(
-      conditionalPanel(
-        condition = "input['varsOrder_varClass']!=''",
-        selectizeInput(
-          inputId="order_varsOrder",
-          label='有序变量各水平排序',
-          choices=chcs,
-          multiple=TRUE
-        )
-      ),
+      # conditionalPanel(
+      #   condition = "input['varsOrder_varClass']!=''",
+      #   selectizeInput(
+      #     inputId="order_varsOrder",
+      #     label='有序变量各水平排序',
+      #     choices=chcs,
+      #     multiple=TRUE
+      #   )
+      # ),
       panel(status='primary',
             heading='保存数据集',
             textInputAddon(inputId='dataName_varClass',label='保存的数据名称',value='',placeholder = 'eg:data_newVarType',addon=icon('pencil'))
@@ -397,8 +396,8 @@ server<-function(input,output,session){
   })
   
   output$summary_varClass<-renderPrint({
-    input$go_varClass
-    isolate({
+    # input$go_varClass
+    # isolate({
       res_varClass()->dt
       sapply(dt,class)
       tryCatch(print(pander(head(dt))),error=function(e)print(head(dt)))
@@ -408,7 +407,7 @@ server<-function(input,output,session){
       tryCatch(print(pander(res)),error=function(e)print(res))
       
       skim(dt)
-    })
+    # })
     
   })
   
@@ -439,8 +438,8 @@ server<-function(input,output,session){
   data_varMnp<-reactive({
     change_data()
     
-    get(input$dataSel_varMnp,envKDAT1)->data_varMnp
-    return(data_varMnp)
+    get(input$dataSel_varMnp,envKDAT1)->data_varMnp1
+    return(data_varMnp1)
     
   })
   
@@ -695,9 +694,6 @@ server<-function(input,output,session){
   ##### datatable ####
   
   
-  
-  
-  
   output$more1_DT<-renderUI({
     change_data()
     list(
@@ -904,19 +900,20 @@ server<-function(input,output,session){
   })
   
   
-  
+  output$summary_dt<-renderPrint({
+      data_DT()->dt
+      sapply(dt,class)
+      tryCatch(print(pander(head(dt))),error=function(e)print(head(dt)))
+      sapply(dt,class)->y
+      unique(y)->x
+      sapply(x,function(i)names(y)[which(y==i)])->res
+      tryCatch(print(pander(res)),error=function(e)print(res))
+      skim(dt)
+  })
   
   output$resMnp<-DT:::renderDataTable({
     datatable(res_DT(),filter='top',extensions = 'Buttons',options=list( dom = 'Bfrtip',buttons = c(  'excel')))
   })
-  
-  
-  
-  
-  
-  
-  
-  
   
   
   
@@ -1026,7 +1023,12 @@ ui<-fluidPage(
             actionBttn('go_varClass','确定')
           ),
           mainPanel(
-            verbatimTextOutput('summary_varClass')
+            panel(
+              heading='数据查看',
+              status='primary',
+              verbatimTextOutput('summary_varClass')
+            )
+            
           )
         )
         
@@ -1047,7 +1049,12 @@ ui<-fluidPage(
             
           ),
           mainPanel(
-            verbatimTextOutput('summary_varMnp')
+            panel(
+              heading='数据查看',
+              status='primary',
+              verbatimTextOutput('summary_varMnp')
+            )
+            
           )
         )
         
@@ -1094,8 +1101,16 @@ ui<-fluidPage(
           
         ),
         mainPanel(
-          panel(status='primary',heading = '结果',
-                DT:::dataTableOutput('resMnp')
+          panel(
+            heading='查看数据',
+            status='primary',
+            verbatimTextOutput('summary_dt')
+          ),
+          panel(
+            heading = '结果',
+            status='primary',
+            
+            DT:::dataTableOutput('resMnp')
           )
           
         )
