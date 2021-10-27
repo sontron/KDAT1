@@ -7,11 +7,25 @@
 shinyFilter<-function(dt,filter=Filter){
   renderUI({
     lapply(filter,function(i){
-      if(class(dt[,i])%in%c('character','factor')){
-        pickerInput(i,i,choices = unique(dt[,i]),selected = unique(dt[,i]),multiple = T,options = list(`actions-box` = T))
+      
+      if(class(dt)[1]=='data.frame'){
+        if(class(dt[,i])%in%c('character','factor')){
+          pickerInput(i,i,choices = unique(dt[,i]),selected = unique(dt[,i]),multiple = T,options = list(`actions-box` = T))
+        } else {
+          numericRangeInput(i,i,value=c(min(dt[,i],na.rm=T),max(dt[,i],na.rm=T)))
+        }
+        
       } else {
-        numericRangeInput(i,i,value=c(min(dt[,i],na.rm=T),max(dt[,i],na.rm=T)))
+        as.data.frame(dt)->dt
+        if(class(dt[,i])%in%c('character','factor')){
+          pickerInput(i,i,choices = unique(dt[,i]),selected = unique(dt[,i]),multiple = T,options = list(`actions-box` = T))
+        } else {
+          numericRangeInput(i,i,value=c(min(dt[,i],na.rm=T),max(dt[,i],na.rm=T)))
+        }
+        
       }
+      
+
     })
   })
 }

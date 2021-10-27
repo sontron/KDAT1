@@ -34,24 +34,24 @@ server<-function(input,output,session){
     input$go_dataImpt
     if(is.null(input$file_dataImpt)) {
       Data<-read.csv(text=input$text_dataImpt,
-                       sep="\t",
-                       na.strings=input$nastr_dataImpt,
-                       stringsAsFactors = input$strAsFac_dataImpt,
-                       header=input$header_dataImpt,
-
-                       fileEncoding = input$encod_dataImpt)
+                     sep="\t",
+                     na.strings=input$nastr_dataImpt,
+                     stringsAsFactors = input$strAsFac_dataImpt,
+                     header=input$header_dataImpt,
+                     
+                     fileEncoding = input$encod_dataImpt)
     } else {
       inFile<-input$file_dataImpt
       if(input$argsMore_dataImpt=='') {
         
         
         Data<-read.csv(inFile$datapath,
-                         na.strings=input$nastr_dataImpt,
-                         stringsAsFactors = input$strAsFac_dataImpt,
-                         header=input$header_dataImpt,
-                         fileEncoding = input$encod_dataImpt,
-
-                         sep=input$sep_dataImpt)
+                       na.strings=input$nastr_dataImpt,
+                       stringsAsFactors = input$strAsFac_dataImpt,
+                       header=input$header_dataImpt,
+                       fileEncoding = input$encod_dataImpt,
+                       
+                       sep=input$sep_dataImpt)
       } else {
         textfun_dataImpt<-paste("read.csv(",paste("file=inFile$datapath","header=input$header_dataImpt","na.strings=input$nastr_dataImpt","stringsAsFactors = input$strAsFac_dataImpt","sep=input$sep_dataImpt","fileEncoding=input$encod_dataImpt",input$argsMore_dataImpt,sep=','),")",sep='')
         eval(parse(text=textfun_dataImpt))->Data
@@ -67,22 +67,22 @@ server<-function(input,output,session){
     
     if(is.null(input$file_dataImpt)) {
       Data<-read.csv(text=input$text_dataImpt,
-                       sep="\t",
-                       na.strings=input$nastr_dataImpt,
-                       stringsAsFactors = input$strAsFac_dataImpt,
-                       header=input$header_dataImpt,
-                       fileEncoding = input$encod_dataImpt,nrows=10)
+                     sep="\t",
+                     na.strings=input$nastr_dataImpt,
+                     stringsAsFactors = input$strAsFac_dataImpt,
+                     header=input$header_dataImpt,
+                     fileEncoding = input$encod_dataImpt,nrows=10)
     } else {
       inFile<-input$file_dataImpt
       if(input$argsMore_dataImpt=='') {
         
         
         Data<-read.csv(inFile$datapath,
-                         na.strings=input$nastr_dataImpt,
-                         stringsAsFactors = input$strAsFac_dataImpt,
-                         header=input$header_dataImpt,
-                         fileEncoding = input$encod_dataImpt,
-                         sep=input$sep_dataImpt,nrows=10)
+                       na.strings=input$nastr_dataImpt,
+                       stringsAsFactors = input$strAsFac_dataImpt,
+                       header=input$header_dataImpt,
+                       fileEncoding = input$encod_dataImpt,
+                       sep=input$sep_dataImpt,nrows=10)
       } else {
         textfun_dataImpt<-paste("read.csv(",paste("file=inFile$datapath","header=input$header_dataImpt","na.strings=input$nastr_dataImpt","stringsAsFactors = input$strAsFac_dataImpt","sep=input$sep_dataImpt","nrows=10","fileEncoding=input$encod_dataImpt",input$argsMore_dataImpt,sep=','),")",sep='')
         eval(parse(text=textfun_dataImpt))->Data
@@ -826,12 +826,18 @@ server<-function(input,output,session){
     } else {
       
       indMat<-sapply(setdiff(input$Filter,''),function(i){
+        
+        
         if(class(dt[,i])%in%c('character','factor')){
           dt[,i]%in%input[[i]]
         } else {
           dt[,i]>=input[[i]][1]&dt[,i]<=input[[i]][2]
           
         }
+        
+        
+        
+        
       })
       
       apply(indMat,1,all)->Ind
@@ -981,8 +987,8 @@ ui<-fluidPage(
         
         mainPanel(
           panel(status='primary',
-            heading='载入小部分数据试错',
-            verbatimTextOutput('dataHead')
+                heading='载入小部分数据试错',
+                verbatimTextOutput('dataHead')
           ),
           panel(
             heading='原始数据变量描述',

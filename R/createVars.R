@@ -25,7 +25,7 @@ createVars<-function(data,varNames='',Formulas='',byVars='',subSets='',batch=F,b
     dt[,paste0(batchVars,batchVarsTail):=lapply(.SD,eval(parse(text=Formulas))),by=byVars,.SDcols=batchVars]
   }
   
-  return(dt)
+  return(as.data.frame(dt))
   
 }
 
