@@ -367,11 +367,11 @@ server<-function(input,output,session){
           }
         }
         
-        if(input$varsOrder_varClass!=''){
-          #for(i in input$varsNum_varClass){
-          ordered(as.vector(dat[,input$varsOrder_varClass]),levels=input$order_varsOrder)->dat[,input$varsOrder_varClass]
-          #}
-        }
+        # if(input$varsOrder_varClass!=''){
+        #   
+        #   ordered(as.vector(dat[,input$varsOrder_varClass]),levels=input$order_varsOrder)->dat[,input$varsOrder_varClass]
+        #   
+        # }
         
         if(length(input$varsDate_varClass)>0){
           for(i in input$varsDate_varClass){
@@ -396,8 +396,8 @@ server<-function(input,output,session){
   })
   
   output$summary_varClass<-renderPrint({
-    # input$go_varClass
-    # isolate({
+    input$go_varClass
+    isolate({
       res_varClass()->dt
       sapply(dt,class)
       tryCatch(print(pander(head(dt))),error=function(e)print(head(dt)))
@@ -407,7 +407,7 @@ server<-function(input,output,session){
       tryCatch(print(pander(res)),error=function(e)print(res))
       
       skim(dt)
-    # })
+    })
     
   })
   
@@ -964,7 +964,7 @@ ui<-fluidPage(
                 heading='导入数据',
                 fileInput(
                   'file_dataImpt', 
-                  '点击上传数据',
+                  '选择本地数据',
                   accept = c(
                     '.csv',
                     '.tsv',
