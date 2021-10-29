@@ -4,6 +4,7 @@ library(shinythemes)
 library(shinyWidgets)
 library(stringi)
 library(DT)
+library(lubridate)
 library(data.table)
 
 
@@ -430,7 +431,13 @@ server<-function(input,output,session){
               multiple = FALSE,
               options = list(`actions-box` = FALSE)
             )
-            #selectInput('dataSel_varMnp','选择数据集',ls(envKDAT1)[-which(ls(envKDAT1)%in%c('envKDAT1','server','ui'))])
+      ),
+      panel(
+        status='primary',
+        heading='填写筛选条件',
+        textInputAddon(
+          'subset1',label='逻辑表达式',value='',addon=icon('pencil'),placeholder='eg:age<=100&age>=0'
+        )
       )
     )
   })
@@ -442,6 +449,35 @@ server<-function(input,output,session){
     return(data_varMnp1)
     
   })
+  
+  
+  ### position here for filter
+  
+  output$more0_Filter1<-renderUI({
+    list(
+      pickerInput(
+        'Filter1',
+        'choose filter vars',
+        choices = c('无'='',names(data_varMnp())),
+        selected ='无',
+        multiple=T,
+        options = list(`actions-box` = T))
+    )
+    
+  })
+  
+  output$more1_Filter1<-renderUI({
+    list(
+      if(length(setdiff(input$Filter1,''))==0){
+        NULL
+      } else {
+        shinyFilter(data_varMnp(),filter=setdiff(input$Filter1,''))
+      }
+    )
+  })
+  
+  
+  ### position here for filter
   
   output$more2_varMnp<-renderUI({
     data_varMnp()->dat
@@ -463,11 +499,11 @@ server<-function(input,output,session){
       
       panel(status='primary',
             heading='设置各类参数',
+            # textInputAddon(
+            #   'subset1',label='筛选子集',value='',addon=icon('pencil')
+            # ),
             textInputAddon(
-              'subset1',label='筛选子集',value='',addon=icon('pencil')
-            ),
-            textInputAddon(
-              'newFormula',label='计算公式',value='',addon=icon('pencil')
+              'newFormula',label='计算公式',value='',addon=icon('pencil'),placeholder='eg:mean(age,na.rm=T) or function(i){mean(i)}'
             ),
             
             pickerInput(
@@ -484,7 +520,7 @@ server<-function(input,output,session){
         panel(status='primary',
               heading='设置变量名',
               textInputAddon(
-                'newVarName',label='变量名',value='',addon=icon('pencil')
+                'newVarName',label='变量名',value='',addon=icon('pencil'),placeholder='eg:newvar1'
               )
         )
       ),
@@ -515,6 +551,33 @@ server<-function(input,output,session){
     req(input$go_varMnp)
     isolate({
       data_varMnp()->dat
+      
+      
+      if(length(setdiff(input$Filter1,''))==0){
+        dat<-dat
+      } else {
+        
+        indMat<-sapply(setdiff(input$Filter1,''),function(i){
+          
+          
+          if(class(dat[,i])%in%c('character','factor')){
+            dat[,i]%in%input[[i]]
+          } else {
+            dat[,i]>=input[[i]][1]&dat[,i]<=input[[i]][2]
+            
+          }
+          
+          
+          
+          
+        })
+        
+        apply(indMat,1,all)->Ind
+        dat<-dat[Ind,]
+        
+      }
+      
+      
       
       if(input$type_varMnp=='Single'){
         
@@ -709,9 +772,9 @@ server<-function(input,output,session){
             )
       ),
       panel(status='primary',
-            heading='手工设置筛选条件',
+            heading='填写筛选条件',
             textInputAddon(
-              inputId='subset2',label='筛选',value='',addon=icon('pencil')
+              inputId='subset2',label='逻辑表达式',value='',addon=icon('pencil'),placeholder='eg:age<=100&age>=0'
             )
       )
     )
@@ -792,7 +855,7 @@ server<-function(input,output,session){
       ),
       checkboxInput(inputId='count',label='是否包含当前条数?',value=TRUE),
       
-      textInputAddon(inputId='otherMethod',label='自定义函数',value='',addon=icon('pencil')),
+      textInputAddon(inputId='otherMethod',label='自定义函数',value='',addon=icon('pencil'),placeholder='eg:meanAge=mean(age,na.rm=T)'),
       
       panel(status='primary',
             heading='选择维度变量',
@@ -908,7 +971,7 @@ server<-function(input,output,session){
       unique(y)->x
       sapply(x,function(i)names(y)[which(y==i)])->res
       tryCatch(print(pander(res)),error=function(e)print(res))
-      skim(dt)
+      # skim(dt)
   })
   
   output$resMnp<-DT:::renderDataTable({
@@ -924,7 +987,7 @@ server<-function(input,output,session){
 ###### uiHeader ######
 
 ui<-fluidPage(
-  # shinythemes::themeSelector(),
+  shinythemes::themeSelector(),
   tags$head(
     tags$style(
       type="text/css", "
@@ -1042,7 +1105,14 @@ ui<-fluidPage(
         sidebarLayout(
           sidebarPanel(
             uiOutput('more1_varMnp'),
+            panel(
+              heading = '自动配置筛选条件',
+              status='primary',
+              uiOutput('more0_Filter1'),
+              uiOutput('more1_Filter1')
+            ),
             uiOutput('more2_varMnp'),
+            
             actionBttn('go_varMnp','确定')
             
             
@@ -1091,7 +1161,7 @@ ui<-fluidPage(
         sidebarPanel(
           uiOutput('more1_DT'),
           panel(
-            heading = '配置筛选条件',
+            heading = '自动配置筛选条件',
             uiOutput('more0_Filter'),
             uiOutput('more1_Filter'),
             status = 'primary'
