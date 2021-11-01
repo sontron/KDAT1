@@ -974,10 +974,19 @@ server<-function(input,output,session){
       # skim(dt)
   })
   
-  output$resMnp<-DT:::renderDataTable({
-    datatable(res_DT(),filter='top',extensions = 'Buttons',options=list( dom = 'Bfrtip',buttons = c(  'excel')))
-  })
+  output$resMnp<-renderDT(
+    res_DT(),filter='top',extensions = 'Buttons',server=T
+  )
   
+  output$downloadRes <- downloadHandler(
+    
+    filename = function() {
+      paste('myResult', Sys.Date(), sep = '.', 'xlsx')
+    },
+    content = function(File) {
+        rio::export(res_DT(),file=File)
+    }
+  )
   
   
   
@@ -1180,7 +1189,9 @@ ui<-fluidPage(
             heading = '结果',
             status='primary',
             
-            DT:::dataTableOutput('resMnp')
+            DTOutput('resMnp'),
+            
+            downloadButton("downloadRes", "Download")
           )
           
         )

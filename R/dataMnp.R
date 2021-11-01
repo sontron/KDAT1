@@ -18,7 +18,7 @@ dtMnp<-function(data,
   
   
   as.data.table(data)->dt
-  unlist(stri_split_fixed(formulas,'&'))->Formulas
+  unlist(stri_split_fixed(formulas,';'))->Formulas
   paste('.(',paste(Formulas,collapse=','),')')->FormulasAll
   
   
