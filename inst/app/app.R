@@ -581,22 +581,22 @@ server<-function(input,output,session){
       
       if(input$type_varMnp=='Single'){
         
-        createVars(dat,
+        tryCatch(createVars(dat,
                    varNames=input$newVarName,
                    Formulas=input$newFormula,
                    byVars=input$varSel_Mnp,
-                   subSets=input$subset1,batch=F)->dat
+                   subSets=input$subset1,batch=F),error=function(e)mtcars)->dat
       }
       
       if(input$type_varMnp=='Batch'){
         
-        createVars(dat,
+        tryCatch(createVars(dat,
                    Formulas=input$newFormula,
                    byVars=input$varSel_Mnp,
                    subSets=input$subset1,
                    batch=T,
                    batchVars=input$varSelBatch_Mnp,
-                   batchVarsTail=input$newTail)->dat
+                   batchVarsTail=input$newTail),eroor=function(e)mtcars)->dat
         
       }
       
@@ -953,12 +953,12 @@ server<-function(input,output,session){
       paste(methodAll,collapse=';')->formsAll
     }
     
-    dtMnp(
+    tryCatch(dtMnp(
       data=dt,
       subSets=input$subset2,
       formulas=formsAll,
       byVars=input$byVarsMnp
-    )->res
+    ),error=function(e)mtcars)->res
     return(res)
   })
   
