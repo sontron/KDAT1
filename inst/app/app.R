@@ -950,7 +950,7 @@ server<-function(input,output,session){
     if(methodAll==''){
       formsAll='count=.N'
     } else {
-      paste(methodAll,collapse='&')->formsAll
+      paste(methodAll,collapse=';')->formsAll
     }
     
     dtMnp(
