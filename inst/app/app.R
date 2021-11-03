@@ -957,7 +957,6 @@ server<-function(input,output,session){
       sapply(x,function(i)names(y)[which(y==i)])->res
       tryCatch(print(pander(res)),error=function(e)print(res))
       # skim(dt)
-      print(input$medianDT)
   })
   
   output$resMnp<-renderDT(
