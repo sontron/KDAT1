@@ -458,8 +458,7 @@ server<-function(input,output,session){
       pickerInput(
         'Filter1',
         'choose filter vars',
-        choices = c('无'='',names(data_varMnp())),
-        selected ='无',
+        choices = c(names(data_varMnp())),
         multiple=T,
         options = list(`actions-box` = T))
     )
@@ -499,9 +498,6 @@ server<-function(input,output,session){
       
       panel(status='primary',
             heading='设置各类参数',
-            # textInputAddon(
-            #   'subset1',label='筛选子集',value='',addon=icon('pencil')
-            # ),
             textInputAddon(
               'newFormula',label='计算公式',value='',addon=icon('pencil'),placeholder='eg:mean(age,na.rm=T) or function(i){mean(i)}'
             ),
@@ -585,7 +581,7 @@ server<-function(input,output,session){
                    varNames=input$newVarName,
                    Formulas=input$newFormula,
                    byVars=input$varSel_Mnp,
-                   subSets=input$subset1,batch=F),error=function(e)mtcars)->dat
+                   subSets=input$subset1,batch=F),error=function(e)dat)->dat
       }
       
       if(input$type_varMnp=='Batch'){
@@ -596,7 +592,7 @@ server<-function(input,output,session){
                    subSets=input$subset1,
                    batch=T,
                    batchVars=input$varSelBatch_Mnp,
-                   batchVarsTail=input$newTail),eroor=function(e)mtcars)->dat
+                   batchVarsTail=input$newTail),error=function(e)dat)->dat
         
       }
       
@@ -616,6 +612,8 @@ server<-function(input,output,session){
     updatePickerInput(session,inputId = 'varSel_Mnp',choices = names(res_varMnp()))
     
     updatePickerInput(session,inputId = 'varSelBatch_Mnp',choices = names(res_varMnp()))
+    
+    updatePickerInput(session,inputId = 'Filter1',choices = names(res_varMnp()))
     
   })
   
@@ -794,8 +792,7 @@ server<-function(input,output,session){
       pickerInput(
         'Filter',
         'choose filter vars',
-        choices = c('无'='',names(data_DT())),
-        selected ='无',
+        choices = c(names(data_DT())),
         multiple=T,
         options = list(`actions-box` = T))
     )
