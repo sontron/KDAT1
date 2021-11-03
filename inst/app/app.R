@@ -453,27 +453,27 @@ server<-function(input,output,session){
   
   ### position here for filter
   
-  output$more0_Filter1<-renderUI({
-    list(
-      pickerInput(
-        'Filter1',
-        'choose filter vars',
-        choices = c(names(data_varMnp())),
-        multiple=T,
-        options = list(`actions-box` = T))
-    )
-    
-  })
-  
-  output$more1_Filter1<-renderUI({
-    list(
-      if(length(setdiff(input$Filter1,''))==0){
-        NULL
-      } else {
-        shinyFilter(data_varMnp(),filter=setdiff(input$Filter1,''))
-      }
-    )
-  })
+  # output$more0_Filter1<-renderUI({
+  #   list(
+  #     pickerInput(
+  #       'Filter1',
+  #       'choose filter vars',
+  #       choices = c(names(data_varMnp())),
+  #       multiple=T,
+  #       options = list(`actions-box` = T))
+  #   )
+  #   
+  # })
+  # 
+  # output$more1_Filter1<-renderUI({
+  #   list(
+  #     if(length(setdiff(input$Filter1,''))==0){
+  #       NULL
+  #     } else {
+  #       shinyFilter(data_varMnp(),filter=setdiff(input$Filter1,''))
+  #     }
+  #   )
+  # })
   
   
   ### position here for filter
@@ -505,7 +505,7 @@ server<-function(input,output,session){
             pickerInput(
               inputId = "varSel_Mnp",
               label = "选择分类处理变量",
-              c('无'='',names(data_dataImpt())),
+              c(names(data_dataImpt())),
               multiple = TRUE,
               options = list(`actions-box` = TRUE)
             )
@@ -549,29 +549,23 @@ server<-function(input,output,session){
       data_varMnp()->dat
       
       
-      if(length(setdiff(input$Filter1,''))==0){
-        dat<-dat
-      } else {
-        
-        indMat<-sapply(setdiff(input$Filter1,''),function(i){
-          
-          
-          if(class(dat[,i])%in%c('character','factor')){
-            dat[,i]%in%input[[i]]
-          } else {
-            dat[,i]>=input[[i]][1]&dat[,i]<=input[[i]][2]
-            
-          }
-          
-          
-          
-          
-        })
-        
-        apply(indMat,1,all)->Ind
-        dat<-dat[Ind,]
-        
-      }
+      # if(length(setdiff(input$Filter1,''))==0){
+      #   Ind<-T
+      # } else {
+      #   
+      #   indMat<-sapply(setdiff(input$Filter1,''),function(i){
+      #     
+      #     if(class(dat[,i])%in%c('character','factor')){
+      #       dat[,i]%in%input[[i]]
+      #     } else {
+      #       dat[,i]>=input[[i]][1]&dat[,i]<=input[[i]][2]
+      #       
+      #     }
+      #     
+      #   })
+      #   
+      #   apply(indMat,1,all)->Ind
+      # }
       
       
       
@@ -816,8 +810,7 @@ server<-function(input,output,session){
             pickerInput(
               inputId = "meanDT",
               label = "纳入计算均值的变量",
-              choices = c('无'='',names(data_DT())),
-              selected='',
+              choices = c(names(data_DT())),
               multiple = TRUE,
               options = list(`actions-box` = TRUE)
             ),
@@ -825,9 +818,7 @@ server<-function(input,output,session){
             pickerInput(
               inputId = "sumDT",
               label = "纳入计算求和的变量",
-              
-              choices = c('无'='',names(data_DT())),
-              selected='',
+              choices = c(names(data_DT())),
               multiple = TRUE,
               options = list(`actions-box` = TRUE)
             ),
@@ -835,8 +826,7 @@ server<-function(input,output,session){
             pickerInput(
               inputId = "medianDT",
               label = "纳入计算中位数的变量",
-              choices = c('无'='',names(data_DT())),
-              selected='',
+              choices = c(names(data_DT())),
               multiple = TRUE,
               options = list(`actions-box` = TRUE)
             ),
@@ -844,8 +834,7 @@ server<-function(input,output,session){
             pickerInput(
               inputId = "sdDT",
               label = "纳入计算标准差的变量",
-              choices = c('无'='',names(data_DT())),
-              selected='',
+              choices = c(names(data_DT())),
               multiple = TRUE,
               options = list(`actions-box` = TRUE)
             )
@@ -859,8 +848,7 @@ server<-function(input,output,session){
             pickerInput(
               inputId = "byVarsMnp",
               label = "维度变量",
-              choices = c('无'='',names(data_DT())),
-              selected='',
+              choices = c(names(data_DT())),
               multiple = TRUE,
               options = list(`actions-box` = TRUE)
             )
@@ -901,7 +889,7 @@ server<-function(input,output,session){
       
     }
     
-    if(input$meanDT==''){
+    if(is.null(input$meanDT)){
       meanMethod=''
     } else {
       paste('mean_',input$meanDT,sep='')->meanVars
@@ -910,7 +898,7 @@ server<-function(input,output,session){
     }
     
     
-    if(input$sumDT==''){
+    if(is.null(input$sumDT)){
       sumMethod=''
     } else {
       paste('sum_',input$sumDT,sep='')->sumVars
@@ -919,7 +907,7 @@ server<-function(input,output,session){
     }
     
     
-    if(input$sdDT==''){
+    if(is.null(input$sdDT)){
       sdMethod=''
     } else {
       paste('sd_',input$sdDT,sep='')->sdVars
@@ -927,11 +915,11 @@ server<-function(input,output,session){
       paste(sdVars,'=',sdForms)->sdMethod
     }
     
-    if(input$medianDT==''){
+    if(is.null(input$medianDT)){
       medianMethod=''
     } else {
       paste('median_',input$medianDT,sep='')->medianVars
-      paste("median(",input$medianDT,",na.rm=T)")->medianForms
+      paste('median(',input$medianDT,',na.rm=T)')->medianForms
       paste(medianVars,'=',medianForms)->medianMethod
     }
     
@@ -969,6 +957,7 @@ server<-function(input,output,session){
       sapply(x,function(i)names(y)[which(y==i)])->res
       tryCatch(print(pander(res)),error=function(e)print(res))
       # skim(dt)
+      print(input$medianDT)
   })
   
   output$resMnp<-renderDT(
@@ -1111,12 +1100,12 @@ ui<-fluidPage(
         sidebarLayout(
           sidebarPanel(
             uiOutput('more1_varMnp'),
-            panel(
-              heading = '自动配置筛选条件',
-              status='primary',
-              uiOutput('more0_Filter1'),
-              uiOutput('more1_Filter1')
-            ),
+            # panel(
+            #   heading = '自动配置筛选条件',
+            #   status='primary',
+            #   uiOutput('more0_Filter1'),
+            #   uiOutput('more1_Filter1')
+            # ),
             uiOutput('more2_varMnp'),
             
             actionBttn('go_varMnp','确定')

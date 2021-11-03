@@ -13,14 +13,15 @@ createVars<-function(data,varNames='',Formulas='',byVars='',subSets='',batch=F,b
   as.data.table(data)->dt
   
   if(subSets%in%c('',NA,'NA','NULL')){
-    dt<-dt
+    sub<-'T'
   } else {
-    subset(dt,eval(parse(text=subSets)))->dt
+    # subset(dt,eval(parse(text=subSets)))->dt
+    sub<-subSets
   }
   
   if(!batch){
     # unlist(stri_split_fixed(Formulas,'&'))->FormulasAll
-    dt[,c(varNames):=lapply(Formulas,function(i)eval(parse(text=i))),by=byVars]
+    dt[eval(parse(text=sub)),c(varNames):=lapply(Formulas,function(i)eval(parse(text=i))),by=byVars]
   } else {
     dt[,paste0(batchVars,batchVarsTail):=lapply(.SD,eval(parse(text=Formulas))),by=byVars,.SDcols=batchVars]
   }
