@@ -505,7 +505,7 @@ server<-function(input,output,session){
             pickerInput(
               inputId = "varSel_Mnp",
               label = "选择分类处理变量",
-              c(names(data_dataImpt())),
+              c(names(data_varMnp())),
               multiple = TRUE,
               options = list(`actions-box` = TRUE)
             )
@@ -530,7 +530,7 @@ server<-function(input,output,session){
               pickerInput(
                 inputId = "varSelBatch_Mnp",
                 label = "批量处理的变量",
-                names(data_dataImpt()),
+                names(data_varMnp()),
                 multiple = TRUE,
                 options = list(`actions-box` = TRUE)
               ),
