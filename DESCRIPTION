@@ -1,7 +1,7 @@
 Package: KDAT1
 Type: Package
 Title: Manipulating and Analyzing Data Interactively with Shiny 
-Version: 0.0.6
+Version: 0.0.7
 Author: son tron
 Maintainer: son tron <sontron@foxmail.com>
 Description: This pakcage is mainly used for statistical analysis.
@@ -15,6 +15,7 @@ Collate:
    "KA1.R"
    "shinyFilter.R"
    "fnRIV.R"
+   "ggplt2.R"
 RoxygenNote: 7.1.1
 Imports:
   compiler,
@@ -26,5 +27,6 @@ Imports:
   stringi,
   DT,
   lubridate,
-  skimr
+  skimr,
+  plotly
 ByteCompile: true

@@ -13,7 +13,8 @@ options(shiny.maxRequestSize = 100000*1024^2)
 
 environment()->envKDAT1
 lstKDAT1<-list()
-
+list()->lstRes
+assign('lstRes',lstRes,env=envKDAT1)
 
 assign('lstKDAT1',lstKDAT1,env=envKDAT1)
 
@@ -27,6 +28,11 @@ server<-function(input,output,session){
     input$go_dataImpt
     input$go_varClass
     input$go_varMnp
+    # input$export_res
+  })
+  
+  change_objs<-reactive({
+    input$go_DT
   })
   
   
@@ -215,8 +221,8 @@ server<-function(input,output,session){
             pickerInput(
               inputId = "dataSel_varClass",
               label = "选择数据集",
-              choices = ls(envKDAT1)[-which(ls(envKDAT1)%in%c('envKDAT1','server','ui','lstKDAT1'))],
-              selected =ls(envKDAT1)[-which(ls(envKDAT1)%in%c('envKDAT1','server','ui','lstKDAT1'))][1],
+              choices = ls(envKDAT1)[-which(ls(envKDAT1)%in%c('envKDAT1','server','ui','lstKDAT1','lstRes'))],
+              selected =ls(envKDAT1)[-which(ls(envKDAT1)%in%c('envKDAT1','server','ui','lstKDAT1','lstRes'))][1],
               multiple = FALSE,
               options = list(`actions-box` = FALSE)
             )
@@ -426,8 +432,8 @@ server<-function(input,output,session){
             pickerInput(
               inputId = "dataSel_varMnp",
               label = "选择数据集",
-              choices = ls(envKDAT1)[-which(ls(envKDAT1)%in%c('envKDAT1','server','ui','lstKDAT1'))],
-              selected =ls(envKDAT1)[-which(ls(envKDAT1)%in%c('envKDAT1','server','ui','lstKDAT1'))][1],
+              choices = ls(envKDAT1)[-which(ls(envKDAT1)%in%c('envKDAT1','server','ui','lstKDAT1','lstRes'))],
+              selected =ls(envKDAT1)[-which(ls(envKDAT1)%in%c('envKDAT1','server','ui','lstKDAT1','lstRes'))][1],
               multiple = FALSE,
               options = list(`actions-box` = FALSE)
             )
@@ -630,12 +636,12 @@ server<-function(input,output,session){
             pickerInput(
               inputId = "dataSel_dataExpt",
               label = "选择数据集",
-              choices = ls(envKDAT1)[-which(ls(envKDAT1)%in%c('envKDAT1','server','ui','lstKDAT1'))],
-              selected =ls(envKDAT1)[-which(ls(envKDAT1)%in%c('envKDAT1','server','ui','lstKDAT1'))][1],
+              choices = ls(envKDAT1)[-which(ls(envKDAT1)%in%c('envKDAT1','server','ui','lstKDAT1','lstRes'))],
+              selected =ls(envKDAT1)[-which(ls(envKDAT1)%in%c('envKDAT1','server','ui','lstKDAT1','lstRes'))][1],
               multiple = FALSE,
               options = list(`actions-box` = FALSE)
             )
-            #selectInput('dataSel_dataExpt','选择数据集',ls(envMadis)[-which(ls(envMadis)%in%c('envMadis','server','ui','LstMadis'))])
+            
       )
     )
   })
@@ -757,8 +763,8 @@ server<-function(input,output,session){
             pickerInput(
               inputId = "dataSel_DT",
               label = "选择数据集",
-              choices = ls(envKDAT1)[-which(ls(envKDAT1)%in%c('envKDAT1','server','ui','lstKDAT1'))],
-              selected =ls(envKDAT1)[-which(ls(envKDAT1)%in%c('envKDAT1','server','ui','lstKDAT1'))][1],
+              choices = ls(envKDAT1)[-which(ls(envKDAT1)%in%c('envKDAT1','server','ui','lstKDAT1','lstRes'))],
+              selected =ls(envKDAT1)[-which(ls(envKDAT1)%in%c('envKDAT1','server','ui','lstKDAT1','lstRes'))][1],
               multiple = FALSE,
               options = list(`actions-box` = FALSE)
             )
@@ -945,6 +951,22 @@ server<-function(input,output,session){
       byVars=input$byVarsMnp
     ),error=function(e)mtcars)->res
     return(res)
+    
+    
+  })
+  
+  observeEvent(input$go_DT,{
+    isolate({
+      if(input$export_res){
+        assign(input$tabRes,res_DT(),envir=envKDAT1)
+        lstRes[[input$tabRes]]<-res_DT()
+        assign('lstRes',lstRes,env=envKDAT1)
+      } else {
+        NULL
+      } 
+      
+    })
+    
   })
   
   
@@ -956,6 +978,7 @@ server<-function(input,output,session){
       unique(y)->x
       sapply(x,function(i)names(y)[which(y==i)])->res
       tryCatch(print(pander(res)),error=function(e)print(res))
+      print(lstRes)
       # skim(dt)
   })
   
@@ -969,13 +992,334 @@ server<-function(input,output,session){
       paste('myResult', Sys.Date(), sep = '.', 'xlsx')
     },
     content = function(File) {
-        rio::export(res_DT(),file=File)
+        rio::export(lstRes,file=File)
     }
   )
   
   
   
+
+
+
+###### 统计图形制作(myGplt) ######
+
+output$more1_myGplt<-renderUI({
+  change_data()
+  change_objs()
+  
+  list(
+    panel(status='primary',
+          heading='选择处理的数据集',
+          pickerInput(
+            inputId = "dataSel_myGplt",
+            label = "选择数据集",
+            choices = ls(envKDAT1)[-which(ls(envKDAT1)%in%c('envKDAT1','server','ui','lstKDAT1','lstRes'))],
+            selected =ls(envKDAT1)[-which(ls(envKDAT1)%in%c('envKDAT1','server','ui','lstKDAT1','lstRes'))][1],
+            multiple = FALSE,
+            options = list(`actions-box` = FALSE)
+          )
+          
+    )
+  )
+})
+
+data_myGplt<-reactive({
+  change_data()
+  get(input$dataSel_myGplt,envKDAT1)->datamyGplt
+  return(datamyGplt)
+  
+})
+
+output$more2_myGplt<-renderUI({
+  list(
+    panel(status='primary',
+          flowLayout(
+            heading='选择作图各属性参数(aes)',
+            pickerInput(
+              inputId='xvar_myGplt',
+              label='选择x轴变量',
+              choices = c('无'='NULL',names(data_myGplt())),
+              selected='NULL',
+              multiple = FALSE,
+              options = list(`actions-box` = FALSE)
+            ),
+            
+            pickerInput(
+              inputId='yvar_myGplt',
+              label='选择y轴变量',
+              choices = c('无'='NULL',names(data_myGplt())),
+              selected='NULL',
+              multiple = FALSE,
+              options = list(`actions-box` = FALSE)
+            ),
+            
+            pickerInput(
+              inputId='size_myGplt',
+              label='设定点或线的大小',
+              choices = c('无'='NULL',names(data_myGplt())),
+              selected='NULL',
+              multiple = FALSE,
+              options = list(`actions-box` = FALSE)
+            ),
+            
+            pickerInput(
+              inputId='color_myGplt',
+              label='设定点线颜色',
+              choices = c('无'='NULL',names(data_myGplt())),
+              selected='NULL',
+              multiple = FALSE,
+              options = list(`actions-box` = FALSE)
+            ),
+            
+            pickerInput(
+              inputId='fill_myGplt',
+              label='设定面的填充',
+              choices = c('无'='NULL',names(data_myGplt())),
+              selected='NULL',
+              multiple = FALSE,
+              options = list(`actions-box` = FALSE)
+            ),
+            
+            pickerInput(
+              inputId='shape_myGplt',
+              label='设定形状',
+              choices = c('无'='NULL',names(data_myGplt())),
+              selected='NULL',
+              multiple = FALSE,
+              options = list(`actions-box` = FALSE)
+            ),
+            
+            pickerInput(
+              inputId='alpha_myGplt',
+              label='设定透明度',
+              choices = c('无'='NULL',names(data_myGplt())),
+              selected='NULL',
+              multiple = FALSE,
+              options = list(`actions-box` = FALSE)
+            )
+          )
+    )
+  )
+})
+
+output$more3_myGplt<-renderUI({
+  list(
+    tabsetPanel(
+      tabPanel(
+        title='ggplot结果',
+        plotOutput('ggplot_myGplt',height='700px'),
+        status='primary'
+      ),
+      tabPanel(
+        'plotly结果',
+        plotlyOutput('plotly_myGplt',height='700px'),
+        status='primary'
+      )
+    ),
+    tabsetPanel(
+      tabPanel(
+        '调整可变属性',
+        flowLayout(
+          pickerInput(
+            inputId='geom_myGplt',
+            label='选择图层',
+            choices = c(
+              '箱图'='box',
+              '直方图'='hist',
+              '计数条图'='bar',
+              '值条图'='col',
+              '线图'='line',
+              'Jitter图'='jitter',
+              '散点图'='point',
+              '平滑曲线'='smooth'
+            ),
+            selected='box',
+            multiple = TRUE,
+            options = list(`actions-box` = TRUE)
+          ),
+          
+          # conditionalPanel(
+          #   condition = "'smooth'%in%input['geom_myGplt']",
+          pickerInput(
+            inputId='smoothMethod_myGplt',
+            label='选择平滑曲线函数',
+            choices = c(
+              '线性回归'='lm',
+              'GAM模型'='gam',
+              'GLM模型'='glm',
+              '局部回归'='loess'
+            ),
+            selected='lm',
+            multiple = FALSE,
+            options = list(`actions-box` = FALSE)
+          ),
+          # ),
+          
+          # conditionalPanel(
+          #   condition = "'bar'%in%input['geom_myGplt']",
+          pickerInput(
+            inputId='barPos_myGplt',
+            label='条图呈现方式',
+            choices = c(
+              '堆叠'='stack',
+              'Dodge'='dodge'
+            ),
+            selected='dodge',
+            multiple = FALSE,
+            options = list(`actions-box` = FALSE)
+          ),
+          # ),
+          
+          
+          pickerInput(
+            inputId='theme_myGplt',
+            label='主题配色',
+            choices = c(
+              'Dark'='dark',
+              'Classic'='classic',
+              'Bw'='bw',
+              'Grey'='grey'
+            ),
+            selected='bw',
+            multiple = FALSE,
+            options = list(`actions-box` = FALSE)
+          ),
+          
+          pickerInput(
+            inputId='facetVar_myGplt',
+            label='选择分层作图变量',
+            choices = c('无'='NULL',names(data_myGplt())),
+            selected='NULL',
+            multiple = TRUE,
+            options = list(`actions-box` = TRUE)
+          ),
+          
+          textInputAddon(inputId='labx_myGplt','设定x轴标题',value='',placeholder = 'eg:x title for my graph',addon = icon('pencil')),
+          textInputAddon(inputId='laby_myGplt','设定y轴标题',value='',placeholder = 'eg:y title for my graph',addon = icon('pencil')),
+          textInputAddon(inputId='title_myGplt','设定图标题',value='',placeholder = 'eg:my graph',addon = icon('pencil'))
+          
+        )
+      ),
+      tabPanel(
+        '设定固定属性',
+        flowLayout(
+          # conditionalPanel(
+          #   condition = "'hist'%in%input['geom_myGplt']",
+          numericInput(
+            inputId = 'Bins_myGplt',
+            label='直方图宽度',
+            min=1,
+            val=10,
+            step=1
+          ),
+          # ),
+          textInputAddon(
+            inputId='Colour_myGplt','设定点及线的整体颜色',value='NULL',placeholder = 'eg:red',addon = icon('pencil')
+          ),
+          textInputAddon(
+            inputId='Fill_myGplt','设定面及区域的整体颜色',value='NULL',placeholder = 'eg:red',addon = icon('pencil')
+          ),
+          numericInput(
+            inputId = 'Size_myGplt',
+            label='设定点的大小',
+            min=1,
+            val='NULL',
+            step=1
+          ),
+          numericInput(
+            inputId = 'Alpha_myGplt',
+            label='设置透明度',
+            min=0,
+            val='NULL',
+            step=1
+          ),
+          
+          numericInput(
+            inputId = 'Width_myGplt',
+            label='条图及箱图宽度',
+            min=0.1,
+            val='NULL',
+            step=1
+          ),
+          
+          numericInput(
+            inputId = 'Shape_myGplt',
+            label='点的形状设定',
+            min=1,
+            val='NULL',
+            step=1
+          )
+        )
+      )
+    )#,
+    # flowLayout(
+    #   actionBttn('go_myGplt','确定'),
+    #   awesomeCheckbox('export_myGplt','将该结果输出报告',FALSE)
+    # )
+    
+  )
+})
+
+
+res_myGplt<-reactive({
+  input$go_myGplt
+  req(input$go_myGplt)
+  # isolate({
+  data_myGplt()->dat
+  ggplt2S(data=dat,
+          x=input$xvar_myGplt,
+          y=input$yvar_myGplt,
+          size=input$size_myGplt,
+          fill=input$fill_myGplt,
+          color=input$color_myGplt,
+          shape=input$shape_myGplt,
+          alpha=input$alpha_myGplt,
+          facetVar=input$facetVar_myGplt,
+          geom=input$geom_myGplt,
+          smoothMethod = input$smoothMethod_myGplt,
+          barPos=input$barPos_myGplt,
+          labx=input$labx_myGplt,
+          laby=input$laby_myGplt,
+          title=input$title_myGplt,
+          Bins=input$Bins_myGplt,
+          theme=input$theme_myGplt,
+          Width=input$Width_myGplt,
+          Colour=input$Colour_myGplt,  # newly added
+          Fill=input$Fill_myGplt,     
+          Size=input$Size_myGplt,
+          Alpha=input$Alpha_myGplt,
+          Shape=input$Shape_myGplt
+          
+          
+          
+  )->res_myGplt
+  return(res_myGplt)
+})
+
+
+
+output$ggplot_myGplt<-renderPlot({
+  input$go_myGplt
+  isolate({
+    res_myGplt()->resmyGplt
+    resmyGplt$resGGplot
+  })
+})
+
+output$plotly_myGplt<-renderPlotly({
+  input$go_myGplt
+  isolate({
+    res_myGplt()->resmyGplt
+    resmyGplt$resPlotly
+  })
+})
+
+
+
+
+
 }
+
 
 
 ###### uiHeader ######
@@ -1174,14 +1518,40 @@ ui<-fluidPage(
             heading = '结果',
             status='primary',
             
-            DTOutput('resMnp'),
+            DTOutput('resMnp')
             
+            
+          ),
+          flowLayout(
+            awesomeCheckbox('export_res','将该结果保存到工作空间中',FALSE),
+            textInputAddon(inputId='tabRes','设置保存的名称','tb1',placeholder = 'eg:tb1',addon = icon('pencil')),
             downloadButton("downloadRes", "Download")
           )
           
         )
       )
+    ),
+    
+    ###### 统计图形制作 ######
+    tabPanel(
+      '统计图形',
+      icon=icon('chart-pie'),
+      sidebarLayout(
+        sidebarPanel(
+          uiOutput('more1_myGplt'),
+          uiOutput('more2_myGplt'),
+          actionBttn('go_myGplt','确定')
+        ),
+        mainPanel(
+          uiOutput('more3_myGplt')
+        )
+      )
     )
+    
+    
+    
+    
+    
     
     
   )
