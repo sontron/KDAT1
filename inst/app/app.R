@@ -6,6 +6,7 @@ library(stringi)
 library(DT)
 library(lubridate)
 library(data.table)
+library(plotly)
 
 
 
@@ -827,23 +828,23 @@ server<-function(input,output,session){
               choices = c(names(data_DT())),
               multiple = TRUE,
               options = list(`actions-box` = TRUE)
-            ),
+            )#,
             
-            pickerInput(
-              inputId = "medianDT",
-              label = "纳入计算中位数的变量",
-              choices = c(names(data_DT())),
-              multiple = TRUE,
-              options = list(`actions-box` = TRUE)
-            ),
+            # pickerInput(
+            #   inputId = "medianDT",
+            #   label = "纳入计算中位数的变量",
+            #   choices = c(names(data_DT())),
+            #   multiple = TRUE,
+            #   options = list(`actions-box` = TRUE)
+            # ),
             
-            pickerInput(
-              inputId = "sdDT",
-              label = "纳入计算标准差的变量",
-              choices = c(names(data_DT())),
-              multiple = TRUE,
-              options = list(`actions-box` = TRUE)
-            )
+            # pickerInput(
+            #   inputId = "sdDT",
+            #   label = "纳入计算标准差的变量",
+            #   choices = c(names(data_DT())),
+            #   multiple = TRUE,
+            #   options = list(`actions-box` = TRUE)
+            # )
       ),
       checkboxInput(inputId='count',label='是否包含当前条数?',value=TRUE),
       
@@ -913,21 +914,21 @@ server<-function(input,output,session){
     }
     
     
-    if(is.null(input$sdDT)){
-      sdMethod=''
-    } else {
-      paste('sd_',input$sdDT,sep='')->sdVars
-      paste("sd(",input$sdDT,",na.rm=T)")->sdForms
-      paste(sdVars,'=',sdForms)->sdMethod
-    }
+    # if(is.null(input$sdDT)){
+    #   sdMethod=''
+    # } else {
+    #   paste('sd_',input$sdDT,sep='')->sdVars
+    #   paste("sd(",input$sdDT,",na.rm=T)")->sdForms
+    #   paste(sdVars,'=',sdForms)->sdMethod
+    # }
     
-    if(is.null(input$medianDT)){
-      medianMethod=''
-    } else {
-      paste('median_',input$medianDT,sep='')->medianVars
-      paste('median(',input$medianDT,',na.rm=T)')->medianForms
-      paste(medianVars,'=',medianForms)->medianMethod
-    }
+    # if(is.null(input$medianDT)){
+    #   medianMethod=''
+    # } else {
+    #   paste('median_',input$medianDT,sep='')->medianVars
+    #   paste('median(',input$medianDT,',na.rm=T)')->medianForms
+    #   paste(medianVars,'=',medianForms)->medianMethod
+    # }
     
     if(input$count){
       countMethod="count=.N"
@@ -936,8 +937,8 @@ server<-function(input,output,session){
     }
     
     
-    setdiff(c(countMethod,meanMethod,medianMethod,sdMethod,sumMethod,input$otherMethod),'')->methodAll
-    
+    # setdiff(c(countMethod,meanMethod,medianMethod,sdMethod,sumMethod,input$otherMethod),'')->methodAll
+    setdiff(c(countMethod,meanMethod,sumMethod,input$otherMethod),'')->methodAll
     if(methodAll==''){
       formsAll='count=.N'
     } else {
@@ -1028,6 +1029,29 @@ data_myGplt<-reactive({
   get(input$dataSel_myGplt,envKDAT1)->datamyGplt
   return(datamyGplt)
   
+})
+
+
+output$more2_Filter<-renderUI({
+  list(
+    pickerInput(
+      'FilterGraph',
+      'choose filter vars',
+      choices = c(names(data_myGplt())),
+      multiple=T,
+      options = list(`actions-box` = T))
+  )
+  
+})
+
+output$more3_Filter<-renderUI({
+  list(
+    if(length(setdiff(input$FilterGraph,''))==0){
+      NULL
+    } else {
+      shinyFilter(data_myGplt(),filter=setdiff(input$FilterGraph,''))
+    }
+  )
 })
 
 output$more2_myGplt<-renderUI({
@@ -1266,6 +1290,31 @@ res_myGplt<-reactive({
   req(input$go_myGplt)
   # isolate({
   data_myGplt()->dat
+  
+  if(length(setdiff(input$FilterGraph,''))==0){
+    dat<-dat
+  } else {
+    
+    indMat<-sapply(setdiff(input$FilterGraph,''),function(i){
+      
+      
+      if(class(dat[,i])%in%c('character','factor')){
+        dat[,i]%in%input[[i]]
+      } else {
+        dat[,i]>=input[[i]][1]&dat[,i]<=input[[i]][2]
+        
+      }
+      
+      
+      
+      
+    })
+    
+    apply(indMat,1,all)->Ind
+    dat<-dat[Ind,]
+    
+  }
+  
   ggplt2S(data=dat,
           x=input$xvar_myGplt,
           y=input$yvar_myGplt,
@@ -1539,6 +1588,12 @@ ui<-fluidPage(
       sidebarLayout(
         sidebarPanel(
           uiOutput('more1_myGplt'),
+          panel(
+            heading = '自动配置筛选条件',
+            uiOutput('more2_Filter'),
+            uiOutput('more3_Filter'),
+            status = 'primary'
+          ),
           uiOutput('more2_myGplt'),
           actionBttn('go_myGplt','确定')
         ),
