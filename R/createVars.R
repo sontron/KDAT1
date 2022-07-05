@@ -20,7 +20,6 @@ createVars<-function(data,varNames='',Formulas='',byVars='',subSets='',batch=F,b
   }
   
   if(!batch){
-    # unlist(stri_split_fixed(Formulas,'&'))->FormulasAll
     dt[eval(parse(text=sub)),c(varNames):=lapply(Formulas,function(i)eval(parse(text=i))),by=byVars]
   } else {
     dt[,paste0(batchVars,batchVarsTail):=lapply(.SD,eval(parse(text=Formulas))),by=byVars,.SDcols=batchVars]
